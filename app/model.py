@@ -114,6 +114,7 @@ class Patient(BaseModel):
     caretaker: str
     inr_reports:List[INRReport]
     next_review_date: Optional[date] = Field(default=None)
+    instructions: Optional[str] = Field(default='')
 
 
     def as_dict(self) -> Dict:

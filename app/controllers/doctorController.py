@@ -48,7 +48,8 @@ async def doctorhome(request:Request,current_user : dict = Depends(role_required
         }
     },
     {"$unset": ["doctor_info", "caretaker_info"]},
-    {"$project": {"caretakerName": 1, "name": 1, "doctor": 1, "ID": 1, "age": 1, "gender": 1,"doctorName":1, "opnum":1}}
+    {"$project": {"caretakerName": 1, "name": 1, "doctor": 1, "ID": 1, "age": 1, "gender": 1,"doctorName":1, "opnum":1,
+        "instructions" : 1,"next_review_date" : 1 }}
     ]
     patients = await patient_collection.aggregate(pipeline).to_list(length=None)
     for patient in patients:
@@ -303,11 +304,12 @@ async def download_patient_report(patient_id:str,request:Request,current_user: d
     )
 
 
-async def update_next_review(patient_id: str, next_review_date: dict, request: Request, current_user: dict = Depends(role_required("doctor"))):
+async def update_next_review(patient_id: str,  payload: NextReviewUpdate, request: Request, current_user: dict = Depends(role_required("doctor"))):
     try:
+        update_data = payload.model_dump()
         patient_collection.update_one(
             {"type": "Patient", "ID": patient_id}, 
-            {"$set": {"next_review_date": next_review_date}}
+            {"$set": {"next_review_date": update_data["next_review_date"]}}
         )
         return JSONResponse(
             status_code=200,

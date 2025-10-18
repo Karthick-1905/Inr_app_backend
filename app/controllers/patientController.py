@@ -107,7 +107,6 @@ async def update_inr_report(request:Request,
     
     report_dict:INRReport = {
         "inr_value": inr_value,
-        "location_of_test": location_of_test,
         "date": iso_date,
         "file_name": file_name,
         "file_path": file_path,
