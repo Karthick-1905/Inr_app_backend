@@ -8,3 +8,7 @@ class editDosageSchema(BaseModel):
 
 class NextReviewUpdate(BaseModel):
     next_review_date: str = Field(...)
+
+
+class AddInstruction(BaseModel):
+    instruction: str = Field(...)

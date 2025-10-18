@@ -4,7 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from app.utils.authutils import role_required,get_current_user
 from app.database import patient_collection,doctor_collection
 from app.model import Patient,PatientCreate
-from app.schema.doctorSchema import editDosageSchema
+from app.schema.doctorSchema import editDosageSchema, NextReviewUpdate, AddInstruction
 from app.utils.patientUtils import calculate_monthly_inr_average,find_missed_doses,get_medication_dates
 from typing import List
 from datetime import datetime, date
@@ -314,3 +314,29 @@ async def update_next_review(patient_id: str, next_review_date: dict, request: R
             content={"message": "Next review date updated successfully!"})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+async def add_instruction(patient_id: str, payload: AddInstruction, current_user: dict = Depends(role_required("doctor"))):
+    instruction_data = {
+        "createdAt": datetime.now(),
+        "instruction": payload.instruction
+    }
+    patient_filter = {
+        "ID": patient_id,
+        "type": "Patient",
+        "$or": [
+            {"doctor": current_user["ID"]},
+            {"caretaker": current_user["ID"]}
+        ]
+    }
+    patient = await patient_collection.find_one(patient_filter)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    update_result = await patient_collection.update_one(
+        patient_filter,
+        {"$push": {"instructions": instruction_data}}
+    )
+    if update_result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    return JSONResponse(status_code=200, content={"message": "Instruction added successfully"})
