@@ -10,12 +10,12 @@ from app.controllers.doctorController import (
     view_patient,
     edit_dosage,
     view_reports,
-    download_patient_report
+    download_patient_report,
+    update_next_review
 )
 from app.utils.authutils import get_current_user, role_required
 from app.model import PatientCreate
-from app.schema.doctorSchema import editDosageSchema
-from app.database import patient_collection
+from app.schema.doctorSchema import editDosageSchema, NextReviewUpdate
 
 doctor_router = APIRouter()
 
@@ -90,18 +90,14 @@ async def edit_dosage_route(
         return JSONResponse(status_code=500, content={"error": str(e)})
     
 
-@doctor_router.put("/update-next-review/{patient_id}", dependencies=[Depends(get_current_user)])
-async def update_next_review(patient_id: str, next_review_date: dict, request: Request, current_user: dict = Depends(role_required("doctor"))):
+@doctor_router.put("/update-next-review/{patient_id}",response_class=JSONResponse, dependencies=[Depends(get_current_user)])
+async def update_next_review_route(patient_id: str, payload: NextReviewUpdate, request: Request, current_user: dict = Depends(role_required("doctor"))):
     try:
-        patient_collection.update_one(
-            {"type": "Patient", "ID": patient_id}, 
-            {"$set": {"next_review_date": next_review_date.get("next_review_date")}}
-        )
-        return JSONResponse(
-            status_code=200,
-            content={"message": "Next review date updated successfully!"})
+        return await update_next_review(patient_id, payload, request, current_user)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"error": e.detail})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @doctor_router.get("/reports",response_class=JSONResponse, dependencies=[Depends(get_current_user)])
 async def fetch_reports(request: Request,typ:str = Query(...), current_user: dict = Depends(role_required("doctor"))):

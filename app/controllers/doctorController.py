@@ -4,7 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from app.utils.authutils import role_required,get_current_user
 from app.database import patient_collection,doctor_collection
 from app.model import Patient,PatientCreate
-from app.schema.doctorSchema import editDosageSchema
+from app.schema.doctorSchema import editDosageSchema, NextReviewUpdate
 from app.utils.patientUtils import calculate_monthly_inr_average,find_missed_doses,get_medication_dates
 from typing import List
 from datetime import datetime, date
@@ -223,6 +223,28 @@ async def edit_dosage(patient_id:str,dosage:editDosageSchema,request: Request, c
         raise HTTPException(status_code=404, detail="Patient not found")
     patient_collection.update_one({"ID": patient_id}, {"$set": {"dosage_schedule": dosage_list}})
     return JSONResponse(status_code=200,content={"message": "Dosage edited successfully"})
+
+
+async def update_next_review(patient_id: str, payload: NextReviewUpdate, request: Request, current_user: dict = Depends(role_required("doctor"))):
+    next_review_date = payload.next_review_date
+    patient_filter = {
+        "ID": patient_id,
+        "type": "Patient",
+        "$or": [
+            {"doctor": current_user["ID"]},
+            {"caretaker": current_user["ID"]}
+        ]
+    }
+    patient = await patient_collection.find_one(patient_filter)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    update_result = await patient_collection.update_one(
+        patient_filter,
+        {"$set": {"next_review_date": next_review_date}}
+    )
+    if update_result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    return JSONResponse(status_code=200, content={"message": "Next review date updated successfully!"})
 
 async def view_reports(request: Request, typ: str, current_user: dict = Depends(role_required("doctor"))):
     report_data = []
