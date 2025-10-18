@@ -89,14 +89,16 @@ async def edit_dosage_route(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     
-
+    
 @doctor_router.put("/update-next-review/{patient_id}",response_class=JSONResponse, dependencies=[Depends(get_current_user)])
 async def update_next_review_route(patient_id: str, payload: NextReviewUpdate, request: Request, current_user: dict = Depends(role_required("doctor"))):
     try:
         return await update_next_review(patient_id, payload, request, current_user)
     except HTTPException as e:
+        print(e)
         return JSONResponse(status_code=e.status_code, content={"error": e.detail})
     except Exception as e:
+        print(e)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @doctor_router.get("/reports",response_class=JSONResponse, dependencies=[Depends(get_current_user)])

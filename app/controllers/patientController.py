@@ -78,9 +78,8 @@ async def patient_home(request: Request, current_user: dict = Depends(role_requi
     )
 
 async def update_inr_report(request:Request,
-        inr_value: float = Form(...),location_of_test: str = Form(...),
+        inr_value: float = Form(...),
         date: str = Form(...),
-        instructions: str = Form(default=""),
         file:str = Form(None),
         file_name:str = Form(None),
         current_user: dict = Depends(role_required("patient"))):
@@ -113,7 +112,6 @@ async def update_inr_report(request:Request,
         "file_name": file_name,
         "file_path": file_path,
         "type": "INR Report",
-        "instructions": instructions,
     }
     result = await patient_collection.update_one(
         {"ID":current_user["ID"]},

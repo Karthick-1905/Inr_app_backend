@@ -48,7 +48,7 @@ async def doctorhome(request:Request,current_user : dict = Depends(role_required
         }
     },
     {"$unset": ["doctor_info", "caretaker_info"]},
-    {"$project": {"caretakerName": 1, "name": 1, "doctor": 1, "ID": 1, "age": 1, "gender": 1,"doctorName":1}}
+    {"$project": {"caretakerName": 1, "name": 1, "doctor": 1, "ID": 1, "age": 1, "gender": 1,"doctorName":1, "opnum":1}}
     ]
     patients = await patient_collection.aggregate(pipeline).to_list(length=None)
     for patient in patients:
