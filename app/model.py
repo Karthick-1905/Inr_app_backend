@@ -80,10 +80,14 @@ class INRReport(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     type: str = Field(default="INR Report")
     inr_value: float
-    location_of_test: str
     date: datetime
     file_name: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    def as_dict(self) -> Dict:
+        dct = self.dict(by_alias=True)
+        dct["date"] = dct["date"].strftime("%d/%m/%Y")
+        return dct
     
     class Config:
         populate_by_name = True
@@ -109,12 +113,14 @@ class Patient(BaseModel):
     doctor : str
     caretaker: str
     inr_reports:List[INRReport]
-    next_review_date: str = Field(default=None)
+    next_review_date: Optional[date] = Field(default=None)
 
 
     def as_dict(self) -> Dict:
         dct = self.dict(by_alias=True)
         dct["therapy_start_date"] = datetime.strftime(dct["therapy_start_date"], "%d/%m/%Y")
+        if dct.get("next_review_date"):
+            dct["next_review_date"] = dct["next_review_date"].strftime("%d/%m/%Y")
         return dct
 
     class Config:

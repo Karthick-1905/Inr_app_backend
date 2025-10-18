@@ -307,7 +307,7 @@ async def update_next_review(patient_id: str, next_review_date: dict, request: R
     try:
         patient_collection.update_one(
             {"type": "Patient", "ID": patient_id}, 
-            {"$set": {"next_review_date": next_review_date.get("next_review_date")}}
+            {"$set": {"next_review_date": next_review_date}}
         )
         return JSONResponse(
             status_code=200,
