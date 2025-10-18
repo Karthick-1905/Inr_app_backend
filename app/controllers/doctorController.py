@@ -340,3 +340,22 @@ async def add_instruction(patient_id: str, payload: AddInstruction, current_user
         raise HTTPException(status_code=404, detail="Patient not found")
     
     return JSONResponse(status_code=200, content={"message": "Instruction added successfully"})
+
+async def get_instructions(patient_id: str, request: Request, current_user: dict = Depends(role_required("doctor"))):
+    patient_filter = {
+        "ID": patient_id,
+        "type": "Patient",
+        "$or": [
+            {"doctor": current_user["ID"]},
+            {"caretaker": current_user["ID"]}
+        ]
+    }
+    patient = await patient_collection.find_one(patient_filter)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    instructions = patient.get("instructions", [])
+    sorted_instructions = sorted(instructions, key=lambda x: x.get("createdAt", datetime.min), reverse=True)
+    last_5 = sorted_instructions[:5]
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder({"instructions": last_5}))
