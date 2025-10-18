@@ -200,6 +200,7 @@ async def view_patient(patient_id:str,request:Request,current_user: dict = Depen
     print(patient.get('caretakerName'),"  ",patient.get('doctorName'))
 
     json_patient = jsonable_encoder(patient,exclude={"_id","","passHash","refresh_token"})
+
     return JSONResponse(
         status_code=200,
         content={

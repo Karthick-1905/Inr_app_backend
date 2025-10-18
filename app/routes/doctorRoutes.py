@@ -90,7 +90,7 @@ async def edit_dosage_route(
         return JSONResponse(status_code=500, content={"error": str(e)})
     
 
-@doctor_router.put("/doctor/update-next-review/{patient_id}", dependencies=[Depends(get_current_user)])
+@doctor_router.put("/update-next-review/{patient_id}", dependencies=[Depends(get_current_user)])
 async def update_next_review(patient_id: str, next_review_date: dict, request: Request, current_user: dict = Depends(role_required("doctor"))):
     try:
         patient_collection.update_one(
