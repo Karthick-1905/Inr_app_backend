@@ -303,3 +303,14 @@ async def download_patient_report(patient_id:str,request:Request,current_user: d
     )
 
 
+async def update_next_review(patient_id: str, next_review_date: dict, request: Request, current_user: dict = Depends(role_required("doctor"))):
+    try:
+        patient_collection.update_one(
+            {"type": "Patient", "ID": patient_id}, 
+            {"$set": {"next_review_date": next_review_date.get("next_review_date")}}
+        )
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Next review date updated successfully!"})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
