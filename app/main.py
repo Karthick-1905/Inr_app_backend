@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 
 app = FastAPI()
+os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 os.makedirs("static/patient_docs", exist_ok=True)
 
