@@ -91,6 +91,7 @@ class Patient(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     name: str = Field(...)
     ID : str
+    opnum: str = Field(...)
     age: int = Field(..., ge=1, le=120)
     gender: str = Field(..., pattern="^(M|F|O)$")
     target_inr_min: float
@@ -106,6 +107,7 @@ class Patient(BaseModel):
     doctor : str
     caretaker: str
     inr_reports:List[INRReport]
+    next_review_date: str = Field(default=None)
 
 
     def as_dict(self) -> Dict:

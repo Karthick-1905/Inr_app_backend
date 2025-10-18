@@ -79,7 +79,9 @@ async def patient_home(request: Request, current_user: dict = Depends(role_requi
 
 async def update_inr_report(request:Request,
         inr_value: float = Form(...),location_of_test: str = Form(...),
-        date: str = Form(...),file:str = Form(None),
+        date: str = Form(...),
+        instructions: str = Form(default=""),
+        file:str = Form(None),
         file_name:str = Form(None),
         current_user: dict = Depends(role_required("patient"))):
     file_path = None
@@ -92,13 +94,26 @@ async def update_inr_report(request:Request,
         with open(file_path, "wb") as f:
             f.write(file_bytes)
     
+    # Parse and convert date to ISO format (dd-mm-yyyy to ISO)
+    try:
+        date_parts = date.split('-')
+        if len(date_parts) == 3:
+            # Assuming format is dd-mm-yyyy
+            day, month, year = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+            iso_date = datetime(year, month, day).isoformat()
+        else:
+            iso_date = date
+    except:
+        iso_date = date
+    
     report_dict:INRReport = {
         "inr_value": inr_value,
         "location_of_test": location_of_test,
-        "date": date,
+        "date": iso_date,
         "file_name": file_name,
         "file_path": file_path,
         "type": "INR Report",
+        "instructions": instructions,
     }
     result = await patient_collection.update_one(
         {"ID":current_user["ID"]},
