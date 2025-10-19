@@ -190,11 +190,21 @@ async def view_patient(patient_id:str,request:Request,current_user: dict = Depen
 
 ]
     patient = await patient_collection.aggregate(pipeline).to_list(length=1)
-    print(patient)
     if not patient:
        raise HTTPException(status_code=404, detail="Patient not found")
     patient = patient[0]
     patient.pop("_id", None)
+    inr_reports = patient.get("inr_reports", [])
+    for report in inr_reports:
+        if isinstance(report.get("date"), str):
+            try:
+                dt = datetime.fromisoformat(report["date"].replace("Z", "+00:00"))
+                report["date"] = dt.strftime("%d-%m-%Y")
+            except (ValueError, AttributeError):
+                pass
+        elif isinstance(report.get("date"), datetime):
+            report["date"] = report["date"].strftime("%d-%m-%Y")
+    
     if not patient.get("inr_reports"):
         patient["inr_reports"] = [{"date": str("1900-01-01T00:00"), "inr_value": 0}]
     print(patient.get('caretakerName'),"  ",patient.get('doctorName'))
