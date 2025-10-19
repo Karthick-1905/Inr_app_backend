@@ -41,7 +41,6 @@ class PatientCreate(BaseModel):
     medical_history: Optional[List[MedicalHistory]]
     therapy_start_date: date
     dosage_schedule: Optional[List[DosageSchedule]]
-    next_review_date: str = Field(default=None)
     opnum: str = Field(...)
     
     @field_validator("contact",mode='before')

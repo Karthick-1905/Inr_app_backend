@@ -55,6 +55,16 @@ async def patient_home(request: Request, current_user: dict = Depends(role_requi
     pat = patient[0];
     if not pat.get("inr_reports"):
         pat["inr_reports"] = [{"date": "1900-01-01T00:00", "inr_value": 0}]
+    
+    if patient.get("next_review_date"):
+        try:
+            # Try parsing as ISO datetime first
+            dt = datetime.fromisoformat(patient["next_review_date"].replace("Z", "+00:00"))
+            patient["next_review_date"] = dt.strftime("%d-%m-%Y")
+        except (ValueError, AttributeError):
+            # Already in correct format or invalid
+            pass
+
     print(pat.get("inr_reports"))
     chart_data = calculate_monthly_inr_average(pat.get("inr_reports"))
 
