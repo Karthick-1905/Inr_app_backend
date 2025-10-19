@@ -56,6 +56,7 @@ async def patient_home(request: Request, current_user: dict = Depends(role_requi
     if not pat.get("inr_reports"):
         pat["inr_reports"] = [{"date": "1900-01-01T00:00", "inr_value": 0}]
     
+
     if pat.get("next_review_date"):
         try:
             # Try parsing as ISO datetime first
@@ -64,10 +65,19 @@ async def patient_home(request: Request, current_user: dict = Depends(role_requi
         except (ValueError, AttributeError):
             # Already in correct format or invalid
             pass
-
-    print(pat.get("inr_reports"))
+    
+    inr_reports = pat.get("inr_reports", [])
+    for report in inr_reports:
+        if isinstance(report.get("date"), str):
+            try:
+                dt = datetime.fromisoformat(report["date"].replace("Z", "+00:00"))
+                report["date"] = dt.strftime("%d-%m-%Y")
+            except (ValueError, AttributeError):
+                pass
+        elif isinstance(report.get("date"), datetime):
+            report["date"] = report["date"].strftime("%d-%m-%Y")
+    
     chart_data = calculate_monthly_inr_average(pat.get("inr_reports"))
-
     therapy_start_date = pat.get("therapy_start_date")
     dosage_schedule = pat.get("dosage_schedule", [])
 
@@ -76,7 +86,6 @@ async def patient_home(request: Request, current_user: dict = Depends(role_requi
 
     medication_dates = get_medication_dates(therapy_start_date, dosage_schedule)
     missed_doses = find_missed_doses(medication_dates, pat.get("taken_doses"))[-1:-11:-1]
-
     json_encoded_pat = jsonable_encoder(pat, exclude={"_id": True,"passHash":True,"refresh_token":True})
     return JSONResponse(
         status_code=200,
@@ -146,7 +155,6 @@ async def submit_report(request: Request,
     typ: str = Query(..., description="type of report to change"),
     field: str = Form(...),
     current_user: dict = Depends(role_required("patient"))):
-    print(typ.lower())
     if typ.lower() not in ["lifestylechanges", "othermedication", "sideeffects", "prolongedillness"]:
         raise HTTPException(status_code=400, detail="Invalid report type")
     
