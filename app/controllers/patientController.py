@@ -56,11 +56,11 @@ async def patient_home(request: Request, current_user: dict = Depends(role_requi
     if not pat.get("inr_reports"):
         pat["inr_reports"] = [{"date": "1900-01-01T00:00", "inr_value": 0}]
     
-    if patient.get("next_review_date"):
+    if pat.get("next_review_date"):
         try:
             # Try parsing as ISO datetime first
-            dt = datetime.fromisoformat(patient["next_review_date"].replace("Z", "+00:00"))
-            patient["next_review_date"] = dt.strftime("%d-%m-%Y")
+            dt = datetime.fromisoformat(pat["next_review_date"].replace("Z", "+00:00"))
+            pat["next_review_date"] = dt.strftime("%d-%m-%Y")
         except (ValueError, AttributeError):
             # Already in correct format or invalid
             pass
