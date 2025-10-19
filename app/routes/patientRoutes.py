@@ -12,8 +12,10 @@ async def get_patients(request: Request,current_user: dict = Depends(role_requir
     try:
         return await patient_home(request,current_user)
     except HTTPException as http_exc:
+        print(e)
         return JSONResponse(status_code=http_exc.status_code, content={"error": http_exc.detail})
     except Exception as e:
+        print(e)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @patient_router.post("/update-inr",response_class=JSONResponse,dependencies=[Depends(get_current_user)])
